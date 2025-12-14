@@ -10,12 +10,13 @@ function fmtCompact(n: number) {
 }
 
 // Server-rendered widget page for ChatGPT embedding.
-export default function MarketWidgetPage({
+export default async function MarketWidgetPage({
   searchParams,
 }: {
-  searchParams?: { market?: string | string[] };
+  searchParams?: Promise<{ market?: string | string[] }>;
 }) {
-  const raw = searchParams?.market;
+  const sp = await searchParams;
+  const raw = sp?.market;
   const marketTitle = (Array.isArray(raw) ? raw[0] : raw)?.trim() || "Will it rain in NYC tomorrow?";
 
   const yes = 0.62;
