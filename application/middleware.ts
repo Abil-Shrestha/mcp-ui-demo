@@ -2,19 +2,26 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Keep middleware minimal and non-throwing on Vercel Edge.
-  // Add permissive CORS headers required for cross-origin fonts/assets inside ChatGPT's widget sandbox.
-  const res =
-    request.method === "OPTIONS"
-      ? new NextResponse(null, { status: 204 })
-      : NextResponse.next();
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+      },
+    });
+  }
 
-  res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.headers.set("Access-Control-Allow-Headers", "*");
-  return res;
+  const response = NextResponse.next();
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "*");
+  return response;
 }
 
 export const config = {
-  matcher: "/:path*",
+  // Disable middleware matching entirely (Vercel Edge was returning MIDDLEWARE_INVOCATION_FAILED).
+  // Required headers for embedding are now set in next.config.ts via the headers() config.
+  matcher: "/__middleware_disabled__",
 };
