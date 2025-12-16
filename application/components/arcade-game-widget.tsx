@@ -49,7 +49,11 @@ const deriveActiveKey = (label: string): string => {
   return normalizedLabel;
 };
 
-export function ArcadeGameWidget() {
+interface ArcadeGameWidgetProps {
+  initialGame?: string;
+}
+
+export function ArcadeGameWidget({ initialGame }: ArcadeGameWidgetProps) {
   
   const [dosLoaded, setDosLoaded] = useState(false);
   const [displayModeTransitioning, setDisplayModeTransitioning] =
@@ -67,10 +71,12 @@ export function ArcadeGameWidget() {
   // const normalizedRouteGame = routeGame?.toLowerCase();
   // const normalizedQueryGame = queryGame?.toLowerCase();
   const normalizedToolGame = toolOutput?.game?.toLowerCase();
+  const normalizedInitialGame = initialGame?.toLowerCase();
 
-  const isGuidedFromTool = Boolean(toolOutput?.game);
+  const isGuidedFromTool = Boolean(toolOutput?.game) || Boolean(initialGame);
   const game =
     normalizedToolGame ??
+    normalizedInitialGame ??
     FALLBACK_GAME;
 
   const dosUrl = toolOutput?.dosUrl ?? getDefaultDosUrl(game);
