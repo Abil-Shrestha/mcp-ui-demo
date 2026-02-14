@@ -43,53 +43,22 @@ const fetchWidgetShell = async (): Promise<string> => {
 
 export default async function handler({
   game,
-}: InferSchema<typeof schema>): Promise<
-  | string
-  | {
-      structuredContent: GameLauncherStructuredContent;
-      content: Array<{ type: "text"; text: string }>;
-    }
-> {
+}: InferSchema<typeof schema>): Promise<string> {
   if (!game) {
     console.warn("[launch_game] Missing game argument. Returning widget shell only.");
     return await fetchWidgetShell();
   }
 
-  const normalizedGame = game.toLowerCase() as SupportedGame;
-  const selectedGame = SUPPORTED_GAMES[normalizedGame];
+  const normalizedGame = game.toLowerCase();
 
-  if (!selectedGame) {
-    console.warn(`[launch_game] Unsupported game "${game}" requested.`);
-    return {
-      structuredContent: {
-        game,
-        title: "Unsupported game",
-        dosUrl: "",
-        error: `Unsupported game "${game}". Try doom or digger.`,
-      } as GameLauncherStructuredContent,
-      content: [
-        {
-          type: "text",
-          text: `Sorry, "${game}" is not available. Try doom or digger.`,
-        },
-      ]
-    };
-  }
+  // We fetch the widget HTML with the game as a query parameter
+  // so that the widget knows which game to launch.
+  // Note: We return the HTML string directly because returning a JSON object
+  // (even with structuredContent) does not trigger the widget rendering in ChatGPT.
+  const html = await getAppsSdkCompatibleHtml(
+    baseURL,
+    `${WIDGET_PATHS.LAUNCH_GAME}?game=${normalizedGame}`
+  );
 
-  const payload: GameLauncherStructuredContent = {
-    game: normalizedGame,
-    title: selectedGame.title,
-    dosUrl: selectedGame.dosUrl,
-    description: selectedGame.description,
-  };
-
-  return {
-    structuredContent: payload,
-    content: [
-      {
-        type: "text",
-        text: `Launching ${selectedGame.title}...`,
-      },
-    ]
-  };
+  return html;
 }
